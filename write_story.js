@@ -22,8 +22,14 @@ function put_story(){
         request.open('GET', requestURL);
         request.responseType = 'json';
         request.send();
-        request.onload = function() {}
-        alert("Success!\nThank you");
-        location.href = "./";
+        request.onload = function() {
+            location.href = "./final.html";
+        }
     }
+}
+var text = ["愛上一匹野馬可我的家裡沒有草原", "我擁有的都是僥倖啊我失去的都是人生", "霧是很容易飄散的想念你", "把你點亮的人忘了在離開的時候把你熄滅", "把你的影子風乾老的時候下酒", "雲淡風輕"]
+function yeeee(){
+    var rnd = Math.floor(Math.random() * 6);
+    alert("關於你的最近\n" + text[rnd]);
+    location.href = "./";
 }
