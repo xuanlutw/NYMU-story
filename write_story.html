@@ -2,21 +2,37 @@
 <html>
 
 <head>
-<meta charset="utf-8">
-<title>Write story</title>
+    <meta charset="utf-8">
+    <title>Write story</title>
 </head>
 
-<script type="text/javascript", src = write_story.js></script>
-<body onload="fill_pre_story()" bgcolor="#000000">
-<div style="text-align:center;width:600px;height:auto;position:absolute;left: 50%;margin-left:-300px;">
-    <font color="#FFFFFF">
-        <h1>Write story</h1></br>
-        <h2>Previos story</h1></br>
-        <p id='pre_story'></p></br>
-        <h2>Your story</h1></br>
-        <textarea style="width:500px;height:100px;" id='after_story'></textarea></br></br>
-    </font>
-    <input type="button" value="Submit" onclick="put_story()" style="width:120px;height:40px;border:2px white none;background-color:gray;color:white;">
-</div>
+<script type="text/javascript">
+function put_story(){
+    if (document.getElementById('after_story').value.length < 50) alert('這樣有點少诶，多寫一點啦');
+    else if (document.getElementById('after_story').value.length > 150) alert('寫太多了啦，留一點故事給別人嗎');
+    else{
+        const story_no = Number(document.getElementById("story_no").innerHTML);
+        const requestURL = './put_story?no=' + story_no + '&context=' + document.getElementById('after_story').value;
+        const request = new XMLHttpRequest();
+        request.open('GET', requestURL);
+        request.responseType = 'json';
+        request.send();
+        request.onload = function() {location.href = "./final.html";}
+    }
+}
+</script>
+
+<body bgcolor="#000000">
+    <div style="text-align:center;width:600px;height:auto;position:absolute;left: 50%;margin-left:-300px;">
+        <font color="#FFFFFF">
+            <h1>Write story</h1></br>
+            <h2>Previos story</h1></br>
+            <p id="pre_story" data-no=""></p></br>
+            <h2>Your story</h1></br>
+            <textarea style="width:500px;height:100px;" id="after_story"></textarea></br></br>
+        </font>
+        <input type="button" value="Submit" onclick="put_story()" style="width:120px;height:40px;border:2px white none;background-color:gray;color:white;">
+    </div>
+    <p id = "story_no" style = "display:none"></p>
 </body>
 </html>

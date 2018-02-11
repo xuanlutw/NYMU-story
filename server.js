@@ -1,60 +1,65 @@
-var express = require("express");
-var app = express();
-var fs = require('fs');
+const express = require("express");
+const app = express();
+const fs = require('fs');
+const cheerio = require('cheerio');
 
-var port = 8000;
-var story_list;
-var no_child_list;
+const port = 8000;
+const story_list = JSON.parse(fs.readFileSync("./story_list.json"));
+const no_child_list = [];
 
-// Index.html
+function write_log(str){
+    str = "[" + new Date() + "] " + str; 
+    console.log(str);
+    fs.appendFile('/log', str + '\n', function(err){});
+}
+
 app.get("/", function(req, res) {
-    res.sendfile(__dirname + '/index.html', function(err) {
-        if (err){
-            res.send(404);
-            var to_write = "[" + new Date() + "] " + req.ip + " GET " +req.url + " " + req.protocol + " 404";
-            console.log(to_write);
-            fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
-        }
-        else{
-            var to_write = "[" + new Date() + "] " + req.ip + " GET " +req.url + " " + req.protocol + " 200";
-            console.log(to_write);
-            fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
-        }
-    });
+    res.redirect('/index.html');
 });
 
+app.get("/write_story.html",function(req, res) {
+    const doc = fs.readFileSync("write_story.html", "utf8");
+    const $ = cheerio.load(doc);
+    const index = Math.floor(Math.random() * no_child_list.length);
+    $('#pre_story').text(story_list[no_child_list[index]]["context"]);
+    $('#story_no').text(story_list[no_child_list[index]]["no"]);
+    res.send($.html());
+    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+});
 
-// Other html
+app.get("/final.html",function(req, res) {
+    const text = ["愛上一匹野馬可我的家裡沒有草原", "我擁有的都是僥倖啊我失去的都是人生", "霧是很容易飄散的想念你", "把你點亮的人忘了在離開的時候把你熄滅", "把你的影子風乾老的時候下酒", "雲淡風輕"]
+    const no = Math.floor(Math.random() * text.length);
+    const doc = fs.readFileSync("final.html", "utf8");
+    const $ = cheerio.load(doc);
+    const index = Math.floor(Math.random() * no_child_list.length);
+    $('#about_you').text(text[no]);
+    res.send($.html());
+    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+});
+
+function exit(){
+    location.href = "/";
+}
+
 app.get("/*.html", function(req, res) {
-    res.sendfile(__dirname + req.url, function(err) {
+    res.sendFile(__dirname + (req.url == "/"? "/index.html": req.url), function(err) {
         if (err){
-            res.send(404);
-            var to_write = "[" + new Date() + "] " + req.ip + " GET " +req.url + " " + req.protocol + " 404";
-            console.log(to_write);
-            fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
-        }
-        else{
-            var to_write = "[" + new Date() + "] " + req.ip + " GET " +req.url + " " + req.protocol + " 200";
-            console.log(to_write);
-            fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
-        }
+            res.sendStatus(404);
+            write_log(req.ip + " GET " +req.url + " " + req.protocol + " 404");
+        }    
+        else write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
     });
 });
 
 // Other file
 app.get(/(.*)\.(jpg|gif|png|ico|css|js|txt)/i, function(req, res) {
-    res.sendfile(__dirname + "/" + req.params[0] + "." + req.params[1], function(err) {
+    res.sendFile(__dirname + "/" + req.params[0] + "." + req.params[1], function(err) {
         if (err){
-            res.send(404);
-            var to_write = "[" + new Date() + "] " + req.ip + " GET " +req.url + " " + req.protocol + " 404";
-            console.log(to_write);
-            fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
-        }
-        else{
-            var to_write = "[" + new Date() + "] " + req.ip + " GET " +req.url + " " + req.protocol + " 200";
-            console.log(to_write);
-            fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
-        }
+            res.sendStatus(404);
+            write_log(req.ip + " GET " +req.url + " " + req.protocol + " 404");
+        }    
+        else write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
     });
 });
 
@@ -66,20 +71,10 @@ app.get("/get_story2", function(req, res) {
     fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
 });
 
-app.get("/get_story", function(req, res) {
-    var index = Math.floor(Math.random() * no_child_list.length);
-    res.status(200).json(story_list[no_child_list[index]])
-    var to_write = "[" + new Date() + "] " + req.ip + " GET " +req.url + " " + req.protocol + " 200";
-    console.log(to_write);
-    fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
-});
-
 app.get('/put_story', function(req, res) {
     res.send("");
-    var to_write = "[" + new Date() + "] " + req.ip + " GET " +req.path + " " + req.protocol + " 200";
-    console.log(to_write);
-    fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
-    var no = req.query["no"];
+    write_log(req.ip + " GET " +req.path + " " + req.protocol + " 200");
+    const no = req.query["no"];
     if (story_list[no]["child"] == -1) story_list[no]["child"] = story_list.length;
     else{
         no = story_list[no]["child"];
@@ -87,7 +82,7 @@ app.get('/put_story', function(req, res) {
         story_list[no]["sibling"] = story_list.length;
     }
     story_list.push({"no": story_list.length, "context": req.query["context"], "child": -1, "sibling": -1});
-    for (var i = 0;i < no_child_list.length;++i)
+    for (let i = 0;i < no_child_list.length;++i)
         if (no_child_list[i] == no)
             no_child_list.splice(i,1);
     no_child_list.push(story_list.length - 1);
@@ -96,12 +91,8 @@ app.get('/put_story', function(req, res) {
 
 // Intialization
 app.listen(port, function() {
-    story_list = JSON.parse(fs.readFileSync("./story_list.json"));
-    no_child_list = [];
     for (var i = 0;i < story_list.length;++i)
         if (story_list[i].child == -1)
             no_child_list.push(i);
-    var to_write = "[" + new Date() + "] Listening on " + port; 
-    console.log(to_write);
-    fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
+    write_log("Listening on " + port); 
 });
