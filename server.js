@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const session = require('express-session');
 const fs = require('fs');
 const cheerio = require('cheerio');
 
@@ -13,6 +14,17 @@ function write_log(str){
     fs.appendFile('/log', str + '\n', function(err){});
 }
 
+app.use(session({
+    secret: "NTUPHYSxNYMUMED"
+    /*
+        session.state 1 write_story
+                      2 final_no_not_given
+                      3 final
+        session.pre_story_no
+        session.final_no
+    */
+}));
+
 app.get("/", function(req, res) {
     res.redirect('/index.html');
 });
@@ -20,27 +32,36 @@ app.get("/", function(req, res) {
 app.get("/write_story.html",function(req, res) {
     const doc = fs.readFileSync("write_story.html", "utf8");
     const $ = cheerio.load(doc);
-    const index = Math.floor(Math.random() * no_child_list.length);
-    $('#pre_story').text(story_list[no_child_list[index]]["context"]);
-    $('#story_no').text(story_list[no_child_list[index]]["no"]);
+    let index = no_child_list[Math.floor(Math.random() * no_child_list.length)];
+    if (!req.session.state || req.session.state != 1){
+        req.session.state = 1;
+        req.session.pre_story_no =index;
+    }
+    else index = req.session.pre_story_no;
+    $('#pre_story').text(story_list[index]["context"]);
+    $('#story_no').text(story_list[index]["no"]);
     res.send($.html());
     write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
 });
 
 app.get("/final.html",function(req, res) {
     const text = ["愛上一匹野馬可我的家裡沒有草原", "我擁有的都是僥倖啊我失去的都是人生", "霧是很容易飄散的想念你", "把你點亮的人忘了在離開的時候把你熄滅", "把你的影子風乾老的時候下酒", "雲淡風輕"]
-    const no = Math.floor(Math.random() * text.length);
     const doc = fs.readFileSync("final.html", "utf8");
     const $ = cheerio.load(doc);
-    const index = Math.floor(Math.random() * no_child_list.length);
+    let no = Math.floor(Math.random() * text.length);
+    if (!req.session.state || req.session.state == 1){
+        res.redirect("/index.html");
+        return;
+    }
+    else if (req.session.state == 2){ 
+        req.session.final_no = no;
+        req.session.state = 3;
+    }
+    else if (req.session.state == 3) no = req.session.final_no;
     $('#about_you').text(text[no]);
     res.send($.html());
     write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
 });
-
-function exit(){
-    location.href = "/";
-}
 
 app.get("/*.html", function(req, res) {
     res.sendFile(__dirname + (req.url == "/"? "/index.html": req.url), function(err) {
@@ -72,9 +93,10 @@ app.get("/get_story2", function(req, res) {
 });
 
 app.get('/put_story', function(req, res) {
+    req.session.state = 2;
     res.send("");
     write_log(req.ip + " GET " +req.path + " " + req.protocol + " 200");
-    const no = req.query["no"];
+    let no = req.query["no"];
     if (story_list[no]["child"] == -1) story_list[no]["child"] = story_list.length;
     else{
         no = story_list[no]["child"];
