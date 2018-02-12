@@ -29,6 +29,14 @@ app.get("/", function(req, res) {
     res.redirect('/index.html');
 });
 
+app.get("/index.html",function(req, res) {
+    const doc = fs.readFileSync("index.html", "utf8");
+    const $ = cheerio.load(doc);
+    $('#start').attr("value", "來寫第" + (story_list.length + 1) + "個故事");
+    res.send($.html());
+    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+});
+
 app.get("/write_story.html",function(req, res) {
     const doc = fs.readFileSync("write_story.html", "utf8");
     const $ = cheerio.load(doc);
