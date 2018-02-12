@@ -4,7 +4,7 @@ const session = require('express-session');
 const fs = require('fs');
 const cheerio = require('cheerio');
 
-const port = 8000;
+const port = process.env.PORT || 8000;
 const story_list = JSON.parse(fs.readFileSync("./story_list.json"));
 const no_child_list = [];
 const about_you_text = ["愛上一匹野馬可我的家裡沒有草原", "我擁有的都是僥倖啊我失去的都是人生", "霧是很容易飄散的想念你", "把你點亮的人忘了在離開的時候把你熄滅", "把你的影子風乾老的時候下酒", "雲淡風輕"]
