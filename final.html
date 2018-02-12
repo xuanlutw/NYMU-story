@@ -6,6 +6,13 @@
     <title>關於你的最近</title>
 </head>
 
+<script>
+function share(){
+	const url = "http://www.lalala.com/share_meta.html?no=" + document.getElementById("no").innerHTML;
+	window.open('http://www.facebook.com/share.php?u='.concat(encodeURIComponent(url)));
+}
+</script>
+
 <body bgcolor="#000000">
     <div style="text-align:center;width:600px;height:auto;position:absolute;left: 50%;margin-left:-300px;">
         <font color="#FFFFFF">
@@ -13,7 +20,8 @@
             <p id="about_you"></p></br>
         </font>
         <input type="button" value="Share" onclick="share()" style="width:120px;height:40px;border:2px white none;background-color:gray;color:white;">
-        <input type="button" value="Exit" onclick="close();" style="width:120px;height:40px;border:2px white none;background-color:gray;color:white;">
     </div>
+    <p id = "no" style = "display:none"></p>
 </body>
+
 </html>

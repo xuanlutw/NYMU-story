@@ -7,6 +7,8 @@ const cheerio = require('cheerio');
 const port = 8000;
 const story_list = JSON.parse(fs.readFileSync("./story_list.json"));
 const no_child_list = [];
+const about_you_text = ["愛上一匹野馬可我的家裡沒有草原", "我擁有的都是僥倖啊我失去的都是人生", "霧是很容易飄散的想念你", "把你點亮的人忘了在離開的時候把你熄滅", "把你的影子風乾老的時候下酒", "雲淡風輕"]
+
 
 function write_log(str){
     str = "[" + new Date() + "] " + str; 
@@ -53,10 +55,9 @@ app.get("/write_story.html",function(req, res) {
 });
 
 app.get("/final.html",function(req, res) {
-    const text = ["愛上一匹野馬可我的家裡沒有草原", "我擁有的都是僥倖啊我失去的都是人生", "霧是很容易飄散的想念你", "把你點亮的人忘了在離開的時候把你熄滅", "把你的影子風乾老的時候下酒", "雲淡風輕"]
     const doc = fs.readFileSync("final.html", "utf8");
     const $ = cheerio.load(doc);
-    let no = Math.floor(Math.random() * text.length);
+    let no = Math.floor(Math.random() * about_you_text.length);
     if (!req.session.state || req.session.state == 1){
         res.redirect("/index.html");
         return;
@@ -66,7 +67,17 @@ app.get("/final.html",function(req, res) {
         req.session.state = 3;
     }
     else if (req.session.state == 3) no = req.session.final_no;
-    $('#about_you').text(text[no]);
+    $('#about_you').text(about_you_text[no]);
+    $('#no').text(no);
+    res.send($.html());
+    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+});
+
+app.get("/share_meta.html",function(req, res) {
+    const doc = fs.readFileSync("share_meta.html", "utf8");
+    const $ = cheerio.load(doc);
+    let no = Number(req.query["no"]);
+    $('#about_you').attr("content", about_you_text[no] || "我無話可說");
     res.send($.html());
     write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
 });
