@@ -127,7 +127,9 @@ app.get('/put_story', function(req, res) {
         if (no_child_list[i] == no)
             no_child_list.splice(i,1);
     no_child_list.push(story_list.length - 1);
-    fs.writeFile("./story_list.json", JSON.stringify(story_list), function(err){});
+    fs.writeFile("./story_list.json", JSON.stringify(story_list), function(err){
+        if (err) console.log("gggggggggg");
+    });
 });
 
 // Intialization
