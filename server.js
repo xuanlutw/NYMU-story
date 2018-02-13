@@ -3,12 +3,12 @@ const app = express();
 const session = require('express-session');
 const fs = require('fs');
 const cheerio = require('cheerio');
+const request = require("request");
 
 const port = process.env.PORT || 8000;
-const story_list = JSON.parse(fs.readFileSync("./story_list.json"));
 const no_child_list = [];
 const about_you_text = ["愛上一匹野馬可我的家裡沒有草原", "我擁有的都是僥倖啊我失去的都是人生", "霧是很容易飄散的想念你", "把你點亮的人忘了在離開的時候把你熄滅", "把你的影子風乾老的時候下酒", "雲淡風輕"]
-
+let story_list;
 
 function write_log(str){
     str = "[" + new Date() + "] " + str; 
@@ -127,15 +127,30 @@ app.get('/put_story', function(req, res) {
         if (no_child_list[i] == no)
             no_child_list.splice(i,1);
     no_child_list.push(story_list.length - 1);
+/*
     fs.writeFile("./story_list.json", JSON.stringify(story_list), function(err){
         if (err) console.log("gggggggggg");
-    });
+    });  
+*/ 	
+	request({
+    	url: "http://linux2.csie.ntu.edu.tw:3334/write",
+    	method: "POST",
+    	json: true,   // <--Very important!!!
+    	body: story_list
+	}, function (error, response, body){});
 });
 
 // Intialization
 app.listen(port, function() {
-    for (var i = 0;i < story_list.length;++i)
-        if (story_list[i].child == -1)
-            no_child_list.push(i);
+	request({
+    	url: "http://linux2.csie.ntu.edu.tw:3334/story_list.json",
+    	method: "GET",
+  		json: true
+	}, function (error, response, body){
+		story_list = body;
+    	for (var i = 0;i < story_list.length;++i)
+        	if (story_list[i].child == -1)
+            	no_child_list.push(i);
+	});
     write_log("Listening on " + port); 
 });
