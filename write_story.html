@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title>Write story</title>
+    <title>你/妳的故事</title>
 </head>
 
 <script type="text/javascript">
@@ -22,17 +22,23 @@ function put_story(){
 }
 </script>
 
-<body bgcolor="#000000">
-    <div style="text-align:center;width:600px;height:auto;position:absolute;left: 50%;margin-left:-300px;">
-        <font color="#FFFFFF">
-            <h1>Write story</h1></br>
-            <h2>Previos story</h1></br>
-            <p id="pre_story" data-no=""></p></br>
-            <h2>Your story</h1></br>
-            <textarea style="width:500px;height:100px;" id="after_story"></textarea></br></br>
-        </font>
-        <input type="button" value="Submit" onclick="put_story()" style="width:120px;height:40px;border:2px white none;background-color:gray;color:white;">
-    </div>
+<body bgcolor="#000000" style="margin:0 auto;padding:0 auto;">
+    <img src="lt.jpg" style="position: fixed;top: 0;left: 15vw;height: 22vh">
+    <img src="rb2.jpg" style="position: fixed;top: 70vh;right: 15vw;height: 30vh" onclick="put_story();">
+    <font color="#FFFFFF" style="font-family:'Agency FB', 'FZYaoti', 'Microsoft YaHei'">
+        <div  style="position: fixed;top: 5vh;left: 55vw;">
+            <h1 style="font-size: 34px;background-color: #666666">Previous</h1>
+        </div>
+        <div  style="position: fixed;top: 17vh;left: 40vw; width:40vw">
+            <p style="font-size: 18px" id="pre_story" data-no=""></p></br>
+        </div>
+        <div  style="position: fixed;top: 40vh;left: 20vw;">
+            <h1 style="font-size: 34px;background-color:#4F5A48;">Now</h1>
+        </div>
+        <div  style="position: fixed;top: 55vh;left: 22vw;">
+            <textarea style="width:36vw;height:30vh;" id="after_story"></textarea></br></br>
+        </div>
+    </font>
     <p id = "story_no" style = "display:none"></p>
 </body>
 </html>

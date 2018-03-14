@@ -3,24 +3,42 @@
 
 <head>
     <meta charset="utf-8">
-    <title>關於你的最近</title>
+    <title>悄悄話</title>
 </head>
 
 <script>
 function share(){
-	const url = "https://story-nymu.herokuapp.com/share_meta.html?no=" + document.getElementById("no").innerHTML;
+	const url = "https://story-nymu.herokuapp.com/share_meta.html?no=" + document.getElementById("no").innerHTML + "&haha=" + Math.random();
 	const fb_window = window.open('http://www.facebook.com/share.php?u='.concat(encodeURIComponent(url)), 'fb', "height=200,width=200");
 }
 </script>
 
-<body bgcolor="#000000">
-    <div style="text-align:center;width:600px;height:auto;position:absolute;left: 50%;margin-left:-300px;">
-        <font color="#FFFFFF">
-            <h1>關於你的最近</h1></br>
-            <p id="about_you"></p></br>
-        </font>
-        <input type="button" value="Share" onclick="share()" style="width:120px;height:40px;border:2px white none;background-color:gray;color:white;">
-    </div>
+<body bgcolor="#000000" style="margin:0 auto;padding:0 auto;">
+    <img src="lt.jpg" style="position: fixed;top: 0;left: 15vw;height: 22vh">
+    <img src="rb3.jpg" style="position: fixed;top: 70vh;right: 15vw;height: 30vh" onclick="location.href='./index.html'">
+    <font color="#FFFFFF" style="font-family:'FZYaoti', 'Microsoft YaHei'">
+        <div style="position: fixed;top: 5vh;left: 38vw;">
+            <h1 style="font-size: 34px"><font color="#C5E0B4">悄悄話</font></h1>
+        </div>
+        <div style="position: fixed;top: 24vh;left: 20vw;">
+            <p style="font-size: 24px;line-height: 30px;text-align:left">
+                恭喜你/妳完成這場文字實驗來到這裡!</br>
+                接下來，只要把這個遊戲分享到臉書(設定公開)，</br>
+                並記得Hashtag <font color="#FFE699">#我說，囈起來吧</font></br>
+                就有機會獲得一整個、八吋的——「提拉米蘇」噢!</br>
+                之後也請關注藝術季的裝置藝術，</br>
+                從全幅的視野，觀看故事一路串接、變化的過程。</br>
+                再次感謝你/妳的蒞臨及加入!!!</br>
+            </p>
+        </div>
+        <div style="position: fixed;top: 75vh;left: 10vw;width: 30vw">
+            <p style="font-size: 20px;line-height: 24px;text-align:left;background-color: #4D4D4D"><font color='#C5E0B4'>
+            3/22-4/2、4/3-4/18會在粉專發文時各抽出兩個提拉米蘇，4/19-4/26會再抽一個，請大家動動手指、多多分享
+            </font></p>
+        </div>
+        
+        <input type="button" value="分享到Facebook" onclick="share()" style="width:220px;height:60px;border:2px white none;background-color:#4267B2;color:white;position: fixed;left: 43vw;top: 80vh;font-size: 24px">
+    </font>
     <p id = "no" style = "display:none"></p>
 </body>
 
