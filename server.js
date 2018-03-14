@@ -32,10 +32,7 @@ app.get("/", function(req, res) {
 });
 
 app.get("/index.html",function(req, res) {
-    const doc = fs.readFileSync("index.html", "utf8");
-    const $ = cheerio.load(doc);
-    $('#start').attr("value", "來寫第" + (story_list.length + 1) + "個故事");
-    res.send($.html());
+    res.sendFile(__dirname + '/index.html');
     write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
 });
 
@@ -55,7 +52,7 @@ app.get("/write_story.html",function(req, res) {
 });
 
 app.get("/final.html",function(req, res) {
-    const doc = fs.readFileSync("final.html", "utf8");
+    const doc = fs.readFileSync("./final.html", "utf8");
     const $ = cheerio.load(doc);
     let no = Math.floor(Math.random() * about_you_text.length);
     if (!req.session.state || req.session.state == 1){
@@ -72,6 +69,49 @@ app.get("/final.html",function(req, res) {
     res.send($.html());
     write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
 });
+
+// ======mobile======
+
+app.get("/mobile_index.html",function(req, res) {
+    res.sendFile(__dirname + '/mobile_index.html');
+    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+});
+
+app.get("/mobile_write_story.html",function(req, res) {
+    const doc = fs.readFileSync("mobile_write_story.html", "utf8");
+    const $ = cheerio.load(doc);
+    let index = no_child_list[Math.floor(Math.random() * no_child_list.length)];
+    if (!req.session.state || req.session.state != 1){
+        req.session.state = 1;
+        req.session.pre_story_no =index;
+    }
+    else index = req.session.pre_story_no;
+    $('#pre_story').text(story_list[index]["context"]);
+    $('#story_no').text(story_list[index]["no"]);
+    res.send($.html());
+    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+});
+
+app.get("/mobile_final.html",function(req, res) {
+    const doc = fs.readFileSync("mobile_final.html", "utf8");
+    const $ = cheerio.load(doc);
+    let no = Math.floor(Math.random() * about_you_text.length);
+    if (!req.session.state || req.session.state == 1){
+        res.redirect("/index.html");
+        return;
+    }
+    else if (req.session.state == 2){ 
+        req.session.final_no = no;
+        req.session.state = 3;
+    }
+    else if (req.session.state == 3) no = req.session.final_no;
+    $('#about_you').text(about_you_text[no]);
+    $('#no').text(no);
+    res.send($.html());
+    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+});
+
+// ==================
 
 app.get("/share_meta.html",function(req, res) {
     const doc = fs.readFileSync("share_meta.html", "utf8");

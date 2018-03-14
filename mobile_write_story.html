@@ -7,7 +7,6 @@
 </head>
 
 <script type="text/javascript">
-if(window.innerWidth < window.innerHeight) document.location.href="mobile_write_story.html";
 function put_story(){
     if (document.getElementById('after_story').value.length < 50) alert('寫太少囉，再寫一點啦');
     else if (document.getElementById('after_story').value.length > 150) alert('超過字數了啦...');
@@ -24,20 +23,20 @@ function put_story(){
 </script>
 
 <body bgcolor="#000000" style="margin:0 auto;padding:0 auto;">
-    <img src="lt.jpg" style="position: fixed;top: 0;left: 15vw;height: 22vh">
-    <img src="rb2.jpg" style="position: fixed;top: 70vh;right: 15vw;height: 30vh" onclick="put_story();">
-    <font color="#FFFFFF" style="font-family:'Agency FB', 'FZYaoti', 'Microsoft YaHei'">
-        <div  style="position: fixed;top: 5vh;left: 55vw;">
-            <h1 style="font-size: 34px;background-color: #666666">Previous</h1>
+    <img src="lt.jpg" style="position: fixed;top: 0;left: 0;height: 15vh">
+    <img src="rb2.jpg" style="position: fixed;bottom: 0;right: 0;height: 20vh" onclick="put_story()">
+    <font color="#FFFFFF" style="font-family:'FZYaoti', 'Microsoft YaHei'">
+        <div  style="position: fixed;top: 17vh;left: 5vw;">
+            <h1 style="font-size: 60px;background-color: #666666">Previous</h1>
         </div>
-        <div  style="position: fixed;top: 17vh;left: 40vw; width:40vw">
-            <p style="font-size: 18px" id="pre_story" data-no=""></p></br>
+        <div  style="position: fixed;top: 23vh;left: 10vw; width:80vw">
+            <p style="font-size: 40px" id="pre_story" data-no=""></p></br>
         </div>
-        <div  style="position: fixed;top: 40vh;left: 20vw;">
-            <h1 style="font-size: 34px;background-color:#4F5A48;">Now</h1>
+        <div  style="position: fixed;top: 43vh;left: 5vw;">
+            <h1 style="font-size: 60px;background-color:#4F5A48;">Now</h1>
         </div>
-        <div  style="position: fixed;top: 55vh;left: 22vw;">
-            <textarea style="width:36vw;height:30vh;" id="after_story"></textarea></br></br>
+        <div  style="position: fixed;top: 52vh;left: 10vw">
+            <textarea style="width:80vw;height:25vh;" id="after_story"></textarea></br></br>
         </div>
     </font>
     <p id = "story_no" style = "display:none"></p>
