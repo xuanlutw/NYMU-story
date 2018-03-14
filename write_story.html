@@ -8,8 +8,8 @@
 
 <script type="text/javascript">
 function put_story(){
-    if (document.getElementById('after_story').value.length < 50) alert('這樣有點少诶，多寫一點啦');
-    else if (document.getElementById('after_story').value.length > 150) alert('寫太多了啦，留一點故事給別人嗎');
+    if (document.getElementById('after_story').value.length < 50) alert('寫太少囉，再寫一點啦');
+    else if (document.getElementById('after_story').value.length > 150) alert('超過字數了啦...');
     else{
         const story_no = Number(document.getElementById("story_no").innerHTML);
         const requestURL = './put_story?no=' + story_no + '&context=' + document.getElementById('after_story').value;
