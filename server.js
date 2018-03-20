@@ -16,6 +16,10 @@ function write_log(str) {
     fs.appendFile('/log', str + '\n', function(err){});
 }
 
+function get_your_no() {
+    return Math.floor(Math.random() * about_you_text.length);
+}
+
 function get_your_text(no) {
     return about_you_text[no].content + " — <" + about_you_text[no].title + ">";
 }
@@ -58,7 +62,7 @@ app.get("/write_story.html",function(req, res) {
 app.get("/final.html",function(req, res) {
     const doc = fs.readFileSync("./final.html", "utf8");
     const $ = cheerio.load(doc);
-    let no = Math.floor(Math.random() * about_you_text.length);
+    let no = get_your_no;
     if (!req.session.state || req.session.state == 1){
         res.redirect("/index.html");
         return;
@@ -98,7 +102,7 @@ app.get("/mobile_write_story.html",function(req, res) {
 app.get("/mobile_final.html",function(req, res) {
     const doc = fs.readFileSync("mobile_final.html", "utf8");
     const $ = cheerio.load(doc);
-    let no = Math.floor(Math.random() * about_you_text.length);
+    let no = get_your_no();
     if (!req.session.state || req.session.state == 1){
         res.redirect("/index.html");
         return;
@@ -119,8 +123,6 @@ app.get("/share_meta.html",function(req, res) {
     const doc = fs.readFileSync("share_meta.html", "utf8");
     const $ = cheerio.load(doc);
     let no = Number(req.query["no"]);
-
-    console.log(no);
     $('#about_you').attr("content", get_your_text(no) || "我無話可說");
     res.send($.html());
     write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
@@ -176,16 +178,27 @@ app.get('/put_story', function(req, res) {
         if (err) console.log("gggggggggg");
     });  
 */ 	
+
+    // backup data
 	request({
     	url: "http://linux2.csie.ntu.edu.tw:3334/write",
     	method: "POST",
     	json: true, 
     	body: story_list
 	}, function (error, response, body){});
+    // 
+
 });
 
 // Intialization
 app.listen(port, function() {
+    /*
+    fs.readFile(story_list, "./story_list.json", function(err){
+        if (err) console.log("gggggggggg");
+    });  
+    */
+    
+    // init data
 	request({
     	url: "http://linux2.csie.ntu.edu.tw:3334/story_list.json",
     	method: "GET",
@@ -196,5 +209,7 @@ app.listen(port, function() {
         	if (story_list[i].child == -1)
             	no_child_list.push(i);
 	});
+    // 
+    
     write_log("Listening on " + port); 
 });
