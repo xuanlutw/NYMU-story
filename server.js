@@ -168,7 +168,7 @@ app.get('/put_story', function(req, res) {
         while (story_list[no]["sibling"] != -1) no = story_list[no]["sibling"];
         story_list[no]["sibling"] = story_list.length;
     }
-    story_list.push({"no": story_list.length, "context": req.query["context"], "child": -1, "sibling": -1});
+    story_list.push({"no": story_list.length, "context": req.query["context"], "child": -1, "sibling": -1, "time": new Date()});
     for (let i = 0;i < no_child_list.length;++i)
         if (no_child_list[i] == no)
             no_child_list.splice(i,1);
