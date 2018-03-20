@@ -7,13 +7,17 @@ const request = require("request");
 
 const port = process.env.PORT || 8000;
 const no_child_list = [];
-const about_you_text = ["愛上一匹野馬可我的家裡沒有草原", "我擁有的都是僥倖啊我失去的都是人生", "霧是很容易飄散的想念你", "把你點亮的人忘了在離開的時候把你熄滅", "把你的影子風乾老的時候下酒", "雲淡風輕"]
+const about_you_text = require("./about_you.json").text;
 let story_list;
 
-function write_log(str){
+function write_log(str) {
     str = "[" + new Date() + "] " + str; 
     console.log(str);
     fs.appendFile('/log', str + '\n', function(err){});
+}
+
+function get_your_text(no) {
+    return about_you_text[no].content + " — <" + about_you_text[no].title + ">";
 }
 
 app.use(session({
@@ -64,7 +68,6 @@ app.get("/final.html",function(req, res) {
         req.session.state = 3;
     }
     else if (req.session.state == 3) no = req.session.final_no;
-    $('#about_you').text(about_you_text[no]);
     $('#no').text(no);
     res.send($.html());
     write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
@@ -105,7 +108,6 @@ app.get("/mobile_final.html",function(req, res) {
         req.session.state = 3;
     }
     else if (req.session.state == 3) no = req.session.final_no;
-    $('#about_you').text(about_you_text[no]);
     $('#no').text(no);
     res.send($.html());
     write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
@@ -117,7 +119,9 @@ app.get("/share_meta.html",function(req, res) {
     const doc = fs.readFileSync("share_meta.html", "utf8");
     const $ = cheerio.load(doc);
     let no = Number(req.query["no"]);
-    $('#about_you').attr("content", about_you_text[no] || "我無話可說");
+
+    console.log(no);
+    $('#about_you').attr("content", get_your_text(no) || "我無話可說");
     res.send($.html());
     write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
 });
@@ -175,7 +179,7 @@ app.get('/put_story', function(req, res) {
 	request({
     	url: "http://linux2.csie.ntu.edu.tw:3334/write",
     	method: "POST",
-    	json: true,   // <--Very important!!!
+    	json: true, 
     	body: story_list
 	}, function (error, response, body){});
 });
