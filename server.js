@@ -4,10 +4,19 @@ const session = require('express-session');
 const fs = require('fs');
 const cheerio = require('cheerio');
 const request = require("request");
+const nodemailer = require("nodemailer");
 
 const port = process.env.PORT || 8000;
 const no_child_list = [];
 const about_you_text = require("./about_you.json").text;
+const gmail = require("./config.json");
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: gmail.user,
+    pass: gmail.pass
+  }
+});
 let story_list;
 
 function write_log(str) {
@@ -22,6 +31,23 @@ function get_your_no() {
 
 function get_your_text(no) {
     return about_you_text[no].content + " — <" + about_you_text[no].title + ">";
+}
+
+function send_mail(no_prev, no_new) {
+    var mailOptions = {
+        from: 'story.nymu',
+        to: gmail.to,
+        subject: '#' + no_new + " Story!",
+        text: 'Receive #' + no_new + " story @" + story_list[no_new].time +"\n\nPrevious story:\n" + story_list[no_prev].context + "\n\nNew story:\n" + story_list[no_new].context
+    };
+
+    transporter.sendMail(mailOptions, function(error, info){
+        if (error) {
+            console.log(error);
+        } else {
+            console.log('Email sent: ' + info.response);
+        }
+    });
 }
 
 app.use(session({
@@ -173,6 +199,7 @@ app.get('/put_story', function(req, res) {
         if (no_child_list[i] == no)
             no_child_list.splice(i,1);
     no_child_list.push(story_list.length - 1);
+    send_mail(no, story_list.length - 1);
 /*
     fs.writeFile("./story_list.json", JSON.stringify(story_list), function(err){
         if (err) console.log("gggggggggg");
