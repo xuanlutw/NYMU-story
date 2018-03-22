@@ -184,6 +184,7 @@ app.get("/get_story2", function(req, res) {
 });
 
 app.get('/put_story', function(req, res) {
+    if (req.session.state != 1) return;
     req.session.state = 2;
     res.send("");
     write_log(req.ip + " GET " +req.path + " " + req.protocol + " 200");
@@ -207,13 +208,14 @@ app.get('/put_story', function(req, res) {
 */ 	
 
     // backup data
+    
 	request({
     	url: "http://linux2.csie.ntu.edu.tw:3334/write",
     	method: "POST",
     	json: true, 
     	body: story_list
 	}, function (error, response, body){});
-    // 
+    
 
 });
 
