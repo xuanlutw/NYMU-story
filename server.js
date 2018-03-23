@@ -43,17 +43,18 @@ function print_story_list() {
         const child = story_list[tree[row][col]].child;
         const sibling = story_list[tree[row][col]].sibling;
         if (child != -1) {
-            tree[row][col + 1] = child;
-            buffer = buffer + put_item(row, col + 1);
+            if (!tree[row + 1])
+                tree[row + 1] = [];
+            tree[row + 1][col] = child;
+            buffer = put_item(row + 1, col);
         }
         if (sibling != -1) {
-            for (let i = 1;i <= buffer;++i) {
-                tree[row + i][col - 1] = -2;}
+            for (let i = 1;i <= buffer;++i)
+                tree[row - 1][col + i] = -2;
             buffer += 1;
-            tree[row + buffer] = [];
-            tree[row + buffer][col - 1] = -1;
-            tree[row + buffer][col] = sibling;
-            buffer = buffer + put_item(row + buffer, col);
+            tree[row - 1][col + buffer] = -1;
+            tree[row][col + buffer] = sibling;
+            buffer = buffer + put_item(row, col + buffer);
         }
         return buffer;
     }
@@ -62,8 +63,9 @@ function print_story_list() {
         if (num != 0 && !num) return num;
         let ans = num.toString();
         ans = '#' + ans;
-        if (ans.length < 4) ans = '-' + ans;
-        if (ans.length < 4) ans = '-' + ans;
+        if (ans.length < 5) ans = ' ' + ans;
+        if (ans.length < 5) ans = ' ' + ans;
+        if (ans.length < 5) ans = ' ' + ans;
         return ans;
     }
 
@@ -71,12 +73,19 @@ function print_story_list() {
     var ans = "";
     for (let i = 0;i < tree.length;++i) {
         for (let j = 0;j < tree[i].length;++j) {
-            if (tree[i][j] != 0 && !tree[i][j]) ans = ans + "     ";
-            else if (tree[i][j] == -1) ans = ans + "   +-";
-            else if (tree[i][j] == -2) ans = ans + "   | ";
-            else ans = ans + "-" + full_dig(tree[i][j]);
+            if (tree[i][j] >= 0) ans = ans + full_dig(tree[i][j]);
+            else ans = ans + "     ";
         }
         ans = ans + "\n";
+        for (let j = 0;j < tree[i].length;++j) {
+            if (tree[i][j] != 0 && !tree[i][j]) ans = ans + "     ";
+            else if (tree[i][j] == -1) ans = ans + "----+";
+            else if (tree[i][j] == -2) ans = ans + "-----";
+            else if (tree[i + 1] && tree[i + 1][j]) ans = ans + "    |";
+            else ans = ans + "     ";
+        }
+        ans = ans + "\n";
+        
     }
     return ans;
 }
@@ -86,7 +95,7 @@ function send_mail(no_prev, no_new) {
         from: 'story.nymu',
         to: gmail.to,
         subject: '#' + no_new + " Story!",
-        text: 'Receive #' + no_new + " story @" + story_list[no_new].time +"\n\nPrevious story:\n" + story_list[no_prev].context + "\n\nNew story:\n" + story_list[no_new].context + '\n\nBranch status:\n' + print_story_list()
+        html: "<pre style='font-family: Courier New'>Receive #" + no_new + " story @" + story_list[no_new].time + ", from: " + story_list[no_new].ip + "\n\nPrevious story:\n" + story_list[no_prev].context + "\n\nNew story:\n" + story_list[no_new].context + '\n\nBranch status:\n' + print_story_list() + "</pre>"
     };
 
     transporter.sendMail(mailOptions, function(error, info){
@@ -243,7 +252,7 @@ app.get('/put_story', function(req, res) {
         while (story_list[no]["sibling"] != -1) no = story_list[no]["sibling"];
         story_list[no]["sibling"] = story_list.length;
     }
-    story_list.push({"no": story_list.length, "context": req.query["context"], "child": -1, "sibling": -1, "time": new Date()});
+    story_list.push({"no": story_list.length, "context": req.query["context"], "child": -1, "sibling": -1, "time": new Date(), "ip": req.ip});
     for (let i = 0;i < no_child_list.length;++i)
         if (no_child_list[i] == no)
             no_child_list.splice(i,1);
@@ -263,7 +272,7 @@ app.get('/put_story', function(req, res) {
     	json: true, 
     	body: story_list
 	}, function (error, response, body){});
-    
+     
 
 });
 
