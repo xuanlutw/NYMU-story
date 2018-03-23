@@ -33,12 +33,60 @@ function get_your_text(no) {
     return about_you_text[no].content + " — <" + about_you_text[no].title + ">";
 }
 
+function print_story_list() {
+    let tree = [];
+    tree[0] = [];
+    tree[0][0] = 0;
+
+    function put_item(row, col) {
+        let buffer = 0;
+        const child = story_list[tree[row][col]].child;
+        const sibling = story_list[tree[row][col]].sibling;
+        if (child != -1) {
+            tree[row][col + 1] = child;
+            buffer = buffer + put_item(row, col + 1);
+        }
+        if (sibling != -1) {
+            for (let i = 1;i <= buffer;++i) {
+                tree[row + i][col - 1] = -2;}
+            buffer += 1;
+            tree[row + buffer] = [];
+            tree[row + buffer][col - 1] = -1;
+            tree[row + buffer][col] = sibling;
+            buffer = buffer + put_item(row + buffer, col);
+        }
+        return buffer;
+    }
+
+    function full_dig(num) {
+        if (num != 0 && !num) return num;
+        let ans = num.toString();
+        ans = '#' + ans;
+        if (ans.length < 4) ans = '-' + ans;
+        if (ans.length < 4) ans = '-' + ans;
+        return ans;
+    }
+
+    put_item(0, 0);
+    var ans = "";
+    for (let i = 0;i < tree.length;++i) {
+        for (let j = 0;j < tree[i].length;++j) {
+            if (tree[i][j] != 0 && !tree[i][j]) ans = ans + "     ";
+            else if (tree[i][j] == -1) ans = ans + "   +-";
+            else if (tree[i][j] == -2) ans = ans + "   | ";
+            else ans = ans + "-" + full_dig(tree[i][j]);
+        }
+        ans = ans + "\n";
+    }
+    return ans;
+}
+
 function send_mail(no_prev, no_new) {
     var mailOptions = {
         from: 'story.nymu',
         to: gmail.to,
         subject: '#' + no_new + " Story!",
-        text: 'Receive #' + no_new + " story @" + story_list[no_new].time +"\n\nPrevious story:\n" + story_list[no_prev].context + "\n\nNew story:\n" + story_list[no_new].context
+        text: 'Receive #' + no_new + " story @" + story_list[no_new].time +"\n\nPrevious story:\n" + story_list[no_prev].context + "\n\nNew story:\n" + story_list[no_new].context + '\n\nBranch status:\n' + print_story_list()
     };
 
     transporter.sendMail(mailOptions, function(error, info){
@@ -239,6 +287,5 @@ app.listen(port, function() {
             	no_child_list.push(i);
 	});
     // 
-    
     write_log("Listening on " + port); 
 });
