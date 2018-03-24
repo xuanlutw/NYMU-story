@@ -90,6 +90,17 @@ function print_story_list() {
     return ans;
 }
 
+function get_real_ip(req) {
+    var ipAddr = req.headers["x-forwarded-for"];
+    if (ipAddr) {
+        var list = ipAddr.split(",");
+        ipAddr = list[list.length-1];
+    } 
+    else
+        ipAddr = req.connection.remoteAddress;
+    return ipAddr;
+}
+
 function send_mail(no_prev, no_new) {
     var mailOptions = {
         from: 'story.nymu',
@@ -124,7 +135,7 @@ app.get("/", function(req, res) {
 
 app.get("/index.html",function(req, res) {
     res.sendFile(__dirname + '/index.html');
-    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+    write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200");
 });
 
 app.get("/write_story.html",function(req, res) {
@@ -139,7 +150,7 @@ app.get("/write_story.html",function(req, res) {
     $('#pre_story').text(story_list[index]["context"]);
     $('#story_no').text(story_list[index]["no"]);
     res.send($.html());
-    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+    write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200");
 });
 
 app.get("/final.html",function(req, res) {
@@ -157,14 +168,14 @@ app.get("/final.html",function(req, res) {
     else if (req.session.state == 3) no = req.session.final_no;
     $('#no').text(no);
     res.send($.html());
-    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+    write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200");
 });
 
 // ======mobile======
 
 app.get("/mobile_index.html",function(req, res) {
     res.sendFile(__dirname + '/mobile_index.html');
-    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+    write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200");
 });
 
 app.get("/mobile_write_story.html",function(req, res) {
@@ -179,7 +190,7 @@ app.get("/mobile_write_story.html",function(req, res) {
     $('#pre_story').text(story_list[index]["context"]);
     $('#story_no').text(story_list[index]["no"]);
     res.send($.html());
-    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+    write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200");
 });
 
 app.get("/mobile_final.html",function(req, res) {
@@ -197,7 +208,7 @@ app.get("/mobile_final.html",function(req, res) {
     else if (req.session.state == 3) no = req.session.final_no;
     $('#no').text(no);
     res.send($.html());
-    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+    write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200");
 });
 
 // ==================
@@ -208,17 +219,7 @@ app.get("/share_meta.html",function(req, res) {
     let no = Number(req.query["no"]);
     $('#about_you').attr("content", get_your_text(no) || "我無話可說");
     res.send($.html());
-    write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
-});
-
-app.get("/*.html", function(req, res) {
-    res.sendFile(__dirname + (req.url == "/"? "/index.html": req.url), function(err) {
-        if (err){
-            res.sendStatus(404);
-            write_log(req.ip + " GET " +req.url + " " + req.protocol + " 404");
-        }    
-        else write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
-    });
+    write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200");
 });
 
 // Other file
@@ -226,16 +227,26 @@ app.get(/(.*)\.(jpg|gif|png|ico|css|js|txt)/i, function(req, res) {
     res.sendFile(__dirname + "/" + req.params[0] + "." + req.params[1], function(err) {
         if (err){
             res.sendStatus(404);
-            write_log(req.ip + " GET " +req.url + " " + req.protocol + " 404");
+            write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 404");
         }    
-        else write_log(req.ip + " GET " +req.url + " " + req.protocol + " 200");
+        else write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200");
     });
 });
 
-app.get("/get_story2", function(req, res) {
+app.get("/curiosity_killed_the_cat", function(req, res) {
+    res.sendFile(__dirname + "/read_story.html", function(err) {
+        if (err){
+            res.sendStatus(404);
+            write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 404");
+        }    
+        else write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200");
+    });
+});
+
+app.get("/cry_cat", function(req, res) {
     //var no = req.query["no"];
     res.status(200).json(story_list);
-    var to_write = "[" + new Date() + "] " + req.ip + " GET " +req.url + " " + req.protocol + " 200";
+    var to_write = "[" + new Date() + "] " + get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200";
     console.log(to_write);
     fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
 });
@@ -244,7 +255,7 @@ app.get('/put_story', function(req, res) {
     if (req.session.state != 1) return;
     req.session.state = 2;
     res.send("");
-    write_log(req.ip + " GET " +req.path + " " + req.protocol + " 200");
+    write_log(get_real_ip(req) + " GET " +req.path + " " + req.protocol + " 200");
     let no = req.query["no"];
     if (story_list[no]["child"] == -1) story_list[no]["child"] = story_list.length;
     else{
@@ -252,7 +263,7 @@ app.get('/put_story', function(req, res) {
         while (story_list[no]["sibling"] != -1) no = story_list[no]["sibling"];
         story_list[no]["sibling"] = story_list.length;
     }
-    story_list.push({"no": story_list.length, "context": req.query["context"], "child": -1, "sibling": -1, "time": new Date(), "ip": req.ip});
+    story_list.push({"no": story_list.length, "context": req.query["context"], "child": -1, "sibling": -1, "time": new Date(), "ip": get_real_ip(req)});
     for (let i = 0;i < no_child_list.length;++i)
         if (no_child_list[i] == no)
             no_child_list.splice(i,1);
@@ -272,7 +283,7 @@ app.get('/put_story', function(req, res) {
     	json: true, 
     	body: story_list
 	}, function (error, response, body){});
-     
+ 
 
 });
 
