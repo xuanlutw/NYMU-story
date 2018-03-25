@@ -36,7 +36,9 @@ function update() {
     document.getElementById('button_up').disabled = (no==0);
     document.getElementById('button_down').disabled = (story_list[no].child == -1);
     document.getElementById('button_left').disabled = (!story_list.find(x => x.sibling == no));
-    document.getElementById('button_right').disabled =(story_list[no].sibling == -1);
+    document.getElementById('button_right').disabled = (story_list[no].sibling == -1);
+    document.getElementById('open').disabled = (!story_list[no].close);
+    document.getElementById('close').disabled = (story_list[no].close || story_list[no].child != -1);
     document.getElementById('tree').innerHTML = print_story_list(no);
 }
 
@@ -49,11 +51,17 @@ function print_story_list(no) {
         let buffer = 0;
         const child = story_list[tree[row][col]].child;
         const sibling = story_list[tree[row][col]].sibling;
+        const close = story_list[tree[row][col]].close;
         if (child != -1) {
             if (!tree[row + 1])
                 tree[row + 1] = [];
             tree[row + 1][col] = child;
             buffer = put_item(row + 1, col);
+        }
+        if (close) {
+            if (!tree[row + 1])
+                tree[row + 1] = [];
+            tree[row + 1][col] = -3;
         }
         if (sibling != -1) {
             for (let i = 1;i <= buffer;++i)
@@ -85,6 +93,7 @@ function print_story_list(no) {
                 ans = ans + full_dig(tree[i][j]);
                 if (tree[i][j] == no) ans += '</font>';
             }
+            else if (tree[i][j] == -3) ans = ans + "    X";
             else ans = ans + "     ";
         }
         ans = ans + "\n";
@@ -111,8 +120,8 @@ function to_up() {
         }
         return valid_inner(story_list[x.child]);
     }
+    no = pre_no;
     if (no != 0) {
-        no = pre_no;
         pre_no = story_list.find(x => valid(x)).no;
     }
     update();
@@ -135,3 +144,28 @@ function to_left() {
     if (story_list.find(x => x.sibling == no)) no = story_list.find(x => x.sibling == no).no;
     update();
 }
+
+function open_branch() {
+    if (!confirm('Are you sure?')) return;
+    const requestURL = './cry_cat?type=2&no=' + no;
+    const request = new XMLHttpRequest();
+    request.open('GET', requestURL);
+    request.responseType = 'json';
+    request.send();
+    request.onload = function() {
+        init();
+    }
+}
+
+function close_branch() {
+    if (!confirm('Are you sure?')) return;
+    const requestURL = './cry_cat?type=1&no=' + no;
+    const request = new XMLHttpRequest();
+    request.open('GET', requestURL);
+    request.responseType = 'json';
+    request.send();
+    request.onload = function() {
+        init();
+    }
+}
+

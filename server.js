@@ -7,7 +7,6 @@ const request = require("request");
 const nodemailer = require("nodemailer");
 
 const port = process.env.PORT || 8000;
-const no_child_list = [];
 const about_you_text = require("./about_you.json").text;
 const gmail = require("./config.json");
 const transporter = nodemailer.createTransport({
@@ -18,6 +17,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 let story_list;
+let no_child_list = [];
 
 function write_log(str) {
     str = "[" + new Date() + "] " + str; 
@@ -42,11 +42,17 @@ function print_story_list() {
         let buffer = 0;
         const child = story_list[tree[row][col]].child;
         const sibling = story_list[tree[row][col]].sibling;
+        const close = story_list[tree[row][col]].close;
         if (child != -1) {
             if (!tree[row + 1])
                 tree[row + 1] = [];
             tree[row + 1][col] = child;
             buffer = put_item(row + 1, col);
+        }
+        if (close) {
+            if (!tree[row + 1])
+                tree[row + 1] = [];
+            tree[row + 1][col] = -3;
         }
         if (sibling != -1) {
             for (let i = 1;i <= buffer;++i)
@@ -74,6 +80,7 @@ function print_story_list() {
     for (let i = 0;i < tree.length;++i) {
         for (let j = 0;j < tree[i].length;++j) {
             if (tree[i][j] >= 0) ans = ans + full_dig(tree[i][j]);
+            else if (tree[i][j] == -3) ans = ans + "    X";
             else ans = ans + "     ";
         }
         ans = ans + "\n";
@@ -101,14 +108,27 @@ function get_real_ip(req) {
     return ipAddr;
 }
 
-function send_mail(no_prev, no_new) {
+function send_mail(type, no_prev, no_new) {
+
     var mailOptions = {
         from: 'story.nymu',
         to: gmail.to,
-        subject: '#' + no_new + " Story!",
-        html: "<pre style='font-family: Courier New'>Receive #" + no_new + " story @" + story_list[no_new].time + ", from: " + story_list[no_new].ip + "\n\nPrevious story:\n" + story_list[no_prev].context + "\n\nNew story:\n" + story_list[no_new].context + '\n\nBranch status:\n' + print_story_list() + "</pre>"
     };
-
+    // Receive
+    if (type == 0) {
+        mailOptions.subject = '#' + no_new + " Story!";
+        mailOptions.html = "<pre style='font-family: Courier New'>Receive #" + no_new + " story @" + story_list[no_new].time + ", from: " + story_list[no_new].ip + "\n\nPrevious story:\n" + story_list[no_prev].context + "\n\nNew story:\n" + story_list[no_new].context + '\n\nBranch status:\n' + print_story_list() + "</pre>";
+    }
+    // Close
+    if (type == 1) {
+        mailOptions.subject = "Close branch #" + no_new;
+        mailOptions.html = "<pre style='font-family: Courier New'>Close branch #" + no_new + " @" + new Date() + '\n\nBranch status:\n' + print_story_list() + "</pre>";
+    }
+    // Receive
+    if (type == 2) {
+        mailOptions.subject = "Open branch #" + no_new;
+        mailOptions.html = "<pre style='font-family: Courier New'>Open branch #" + no_new + " @" + new Date() + '\n\nBranch status:\n' + print_story_list() + "</pre>";
+    }
     transporter.sendMail(mailOptions, function(error, info){
         if (error) {
             console.log(error);
@@ -116,6 +136,16 @@ function send_mail(no_prev, no_new) {
             console.log('Email sent: ' + info.response);
         }
     });
+}
+
+function backup_data() {
+    if (gmail.test) return;
+	request({
+    	url: "http://linux2.csie.ntu.edu.tw:3334/write",
+    	method: "POST",
+    	json: true, 
+    	body: story_list
+	}, function (error, response, body){});
 }
 
 app.use(session({
@@ -244,11 +274,36 @@ app.get("/curiosity_killed_the_cat", function(req, res) {
 });
 
 app.get("/cry_cat", function(req, res) {
-    //var no = req.query["no"];
-    res.status(200).json(story_list);
-    var to_write = "[" + new Date() + "] " + get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200";
-    console.log(to_write);
-    fs.appendFile(__dirname + '/log', to_write + '\n', function(err){});
+    const type = req.query["type"];
+    const no = req.query["no"];
+    // get json
+    if (!type) {
+        res.status(200).json(story_list);
+        write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200");
+    }
+    // close 
+    if (type == 1) {
+        // cna't close all branch
+        if (no_child_list.find(x => x == no) && no_child_list.length > 1 && !story_list[no].close) {
+            story_list[no].close = 1;
+            no_child_list = no_child_list.filter(x => x != no);
+            backup_data();
+            send_mail(1, -1, no);
+        }
+        res.status(200).end();
+        write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200 close: " + no);
+    }
+    // open 
+    if (type == 2) {
+        if (story_list[no].child == -1 && story_list[no].close) {
+            story_list[no].close = 0;
+            no_child_list.push(no);
+            backup_data();
+            send_mail(2, -1, no);
+        }
+        res.status(200).end();
+        write_log(get_real_ip(req) + " GET " +req.url + " " + req.protocol + " 200 open: " + no);
+    }
 });
 
 app.get('/put_story', function(req, res) {
@@ -257,6 +312,7 @@ app.get('/put_story', function(req, res) {
     res.send("");
     write_log(get_real_ip(req) + " GET " +req.path + " " + req.protocol + " 200");
     let no = req.query["no"];
+    if (!no_child_list.find(x => x==no)) return;
     if (story_list[no]["child"] == -1) story_list[no]["child"] = story_list.length;
     else{
         no = story_list[no]["child"];
@@ -268,22 +324,14 @@ app.get('/put_story', function(req, res) {
         if (no_child_list[i] == no)
             no_child_list.splice(i,1);
     no_child_list.push(story_list.length - 1);
-    send_mail(no, story_list.length - 1);
+    send_mail(0, no, story_list.length - 1);
 /*
     fs.writeFile("./story_list.json", JSON.stringify(story_list), function(err){
         if (err) console.log("gggggggggg");
     });  
 */ 	
 
-    // backup data
-    
-	request({
-    	url: "http://linux2.csie.ntu.edu.tw:3334/write",
-    	method: "POST",
-    	json: true, 
-    	body: story_list
-	}, function (error, response, body){});
- 
+    backup_data();
 
 });
 
@@ -303,7 +351,7 @@ app.listen(port, function() {
 	}, function (error, response, body){
 		story_list = body;
     	for (var i = 0;i < story_list.length;++i)
-        	if (story_list[i].child == -1)
+        	if (story_list[i].child == -1 && !story_list[i].close)
             	no_child_list.push(i);
 	});
     // 
