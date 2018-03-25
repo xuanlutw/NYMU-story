@@ -2,25 +2,30 @@
 <html>
 
 <head>
-<meta charset="utf-8">
-<title>Read story</title>
+    <meta charset="utf-8">
+    <title>Curiosity killed the cat...</title>
 </head>
 
 <script type="text/javascript", src = read_story.js></script>
 <body onload="init()">
 
-<h1>Read story</h1></br>
-
-<h2>Pre</h2></br>
-<p id='pre_story'></p></br>
-
-<h2>After</h2></br>
-<p id='after_story'></p></br>
-
+<div style="width:45vw;float:left;">
+    <h1>Curiosity killed the cat...</h1></br>
+    <h2 id='pre_story_title'>Pre story #</h2></br>
+    <p id='pre_story_content'></p>
+    </br>
+    <h2 id='now_story_title'>Now story #</h2></br>
+    <p id='now_story_content'></p></br>
+</div>
+<input id="button_up"type="button" value="↑" style="width:50px;position: fixed;bottom: 5px;left: 5px" onclick="to_up()">
+<input id="button_down" type="button" value="↓" style="width:50px;position: fixed;bottom: 5px;left: 60px" onclick="to_down()">
+<input id="button_right" type="button" value="→" style="width:50px;position: fixed;bottom: 5px;left: 115px" onclick="to_right()">
+<input id="button_left" type="button" value="←" style="width:50px;position: fixed;bottom: 5px;left: 170px" onclick="to_left()">
+<div style="width:45vw;float:right;">
+    <pre id="tree" style='font-size: 10px; font-family: Courier New'></pre>
+</div>
 </br>
 
-<input type="button" value="And then?" onclick="next_story()"></br></br>
-<input type="button" value="Another branch" onclick="another_story()"></br>
 
 </body>
 </html>
