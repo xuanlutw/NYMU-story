@@ -138,13 +138,13 @@ function send_mail(type, no_prev, no_new) {
     });
 }
 
-function backup_data() {
+function backup_data(i) {
     if (gmail.test) return;
 	request({
     	url: "http://linux2.csie.ntu.edu.tw:3334/write",
     	method: "POST",
     	json: true, 
-    	body: story_list
+    	body: story_list[i]
 	}, function (error, response, body){});
 }
 
@@ -287,7 +287,7 @@ app.get("/cry_cat", function(req, res) {
         if (no_child_list.find(x => x == no) && no_child_list.length > 1 && !story_list[no].close) {
             story_list[no].close = 1;
             no_child_list = no_child_list.filter(x => x != no);
-            backup_data();
+            backup_data(no);
             send_mail(1, -1, no);
         }
         res.status(200).end();
@@ -298,7 +298,7 @@ app.get("/cry_cat", function(req, res) {
         if (story_list[no].child == -1 && story_list[no].close) {
             story_list[no].close = 0;
             no_child_list.push(no);
-            backup_data();
+            backup_data(no);
             send_mail(2, -1, no);
         }
         res.status(200).end();
@@ -313,11 +313,15 @@ app.get('/put_story', function(req, res) {
     write_log(get_real_ip(req) + " GET " +req.path + " " + req.protocol + " 200");
     let no = req.query["no"];
     if (!no_child_list.find(x => x==no)) return;
-    if (story_list[no]["child"] == -1) story_list[no]["child"] = story_list.length;
+    if (story_list[no]["child"] == -1) {
+        story_list[no]["child"] = story_list.length;
+        backup_data(no);
+    }
     else{
         no = story_list[no]["child"];
         while (story_list[no]["sibling"] != -1) no = story_list[no]["sibling"];
         story_list[no]["sibling"] = story_list.length;
+        backup_data(no);
     }
     story_list.push({"no": story_list.length, "context": req.query["context"], "child": -1, "sibling": -1, "time": new Date(), "ip": get_real_ip(req)});
     for (let i = 0;i < no_child_list.length;++i)
@@ -325,13 +329,13 @@ app.get('/put_story', function(req, res) {
             no_child_list.splice(i,1);
     no_child_list.push(story_list.length - 1);
     send_mail(0, no, story_list.length - 1);
+    backup_data(story_list.length - 1);
 /*
     fs.writeFile("./story_list.json", JSON.stringify(story_list), function(err){
         if (err) console.log("gggggggggg");
     });  
 */ 	
 
-    backup_data();
 
 });
 
